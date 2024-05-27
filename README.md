@@ -37,7 +37,7 @@
     cd ..
     pip install -r requirements.txt
     ```
-5. In file .\MultiPage\env\lib\site-packages\basicsr\data\degradations.py
+5. In file .\DEMO_YOLO_2_4\env\lib\site-packages\basicsr\data\degradations.py
     ```bash
     Change
     from torchvision.transforms.functional_tensor import rgb_to_grayscale
