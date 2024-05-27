@@ -1026,7 +1026,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 df = pd.read_excel('./BANG_SO_XE.xlsx')
                                 data_array = df.values
                                 for i in range(len(data_array)):
-                                    if data_array[i][1] == result_string[:4]:
+                                    if np.char.strip(data_array[i][1]) == result_string[:4]:
                                         s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                         st.markdown(s, unsafe_allow_html=True)
                                         break
@@ -1036,7 +1036,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                             df = pd.read_excel('./BANG_SO_XE.xlsx')
                             data_array = df.values
                             for i in range(len(data_array)):
-                                if data_array[i][1] == result_string[:4]:
+                                if np.char.strip(data_array[i][1]) == result_string[:4]:
                                     s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                     st.markdown(s, unsafe_allow_html=True)
                                     break
@@ -1046,7 +1046,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
                         for i in range(len(data_array)):
-                            if data_array[i][1] == result_string[:4]:
+                            if np.char.strip(data_array[i][1]) == result_string[:4]:
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
@@ -1062,7 +1062,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
                         for i in range(len(data_array)):
-                            if data_array[i][1] == result_string[:4]:
+                            if np.char.strip(data_array[i][1]) == result_string[:4]:
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
@@ -1074,7 +1074,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                 df = pd.read_excel('./BANG_SO_XE.xlsx')
                 data_array = df.values
                 for i in range(len(data_array)):
-                    if data_array[i][1] == result_string[:4]:
+                    if np.char.strip(data_array[i][1]) == result_string[:4]:
                         s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                         st.markdown(s, unsafe_allow_html=True)
                         break
@@ -1101,7 +1101,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                             df = pd.read_excel('./BANG_SO_XE.xlsx')
                             data_array = df.values
                             for i in range(len(data_array)):
-                                if data_array[i][1] == result_string[:4]:
+                                if np.char.strip(data_array[i][1]) == result_string[:4]:
                                     s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                     st.markdown(s, unsafe_allow_html=True)
                                     break
@@ -1113,7 +1113,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
                         for i in range(len(data_array)):
-                            if data_array[i][1] == result_string[:4]:
+                            if np.char.strip(data_array[i][1]) == result_string[:4]:
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
@@ -1130,7 +1130,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
                         for i in range(len(data_array)):
-                            if data_array[i][1] == result_string[:4]:
+                            if np.char.strip(data_array[i][1]) == result_string[:4]:
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
