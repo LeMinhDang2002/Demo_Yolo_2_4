@@ -19,6 +19,8 @@
 3. Clone GFPGAN
     ```bash
     git clone https://github.com/TencentARC/GFPGAN.git
+    ```
+    ```bash
     cd .\GFPGAN
 
     pip install basicsr
