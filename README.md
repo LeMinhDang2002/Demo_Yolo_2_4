@@ -63,5 +63,5 @@
 1. Home page
 
 <p align="center">
-  <img src="https://xinntao.github.io/projects/GFPGAN_src/gfpgan_teaser.jpg">
+  <img src="./Image_Readme/img_1.jpg">
 </p>
