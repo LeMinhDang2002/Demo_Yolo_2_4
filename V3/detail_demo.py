@@ -174,10 +174,7 @@ def soft_nms(xywhcp, class_num=1,
                         delete_list.append(overlap_index)
         xywhcp_class = np.delete(xywhcp_class, delete_list, axis=0)
         xywhcp_new.append(xywhcp_class)
-    if version == 3:
-        xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[4])
-    if version == 4:
-        xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[3])
+    xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[4])
     xywhcp = np.vstack(xywhcp_new)
     return xywhcp
 
@@ -399,12 +396,12 @@ def RunDemo(yolo, cnn, uploaded_files, version = 2):
             if version == 4:
                 x = int(xywhcp[0][0] * img.shape[1])
                 y = int(xywhcp[0][1] * img.shape[0])
-                w = int(xywhcp[0][2] * img.shape[1]*1.2)
-                h = int(xywhcp[0][3] * img.shape[0]*1.1)
+                w = int(xywhcp[0][2] * img.shape[1]*1.4)
+                h = int(xywhcp[0][3] * img.shape[0]*1.2)
             else:
                 x = int(xywhcp[0][0] * img.shape[1])
                 y = int(xywhcp[0][1] * img.shape[0])
-                w = int(xywhcp[0][2] * img.shape[1] * 1.4)
+                w = int(xywhcp[0][2] * img.shape[1] * 1.3)
                 h = int(xywhcp[0][3] * img.shape[0] * 1.1)
             class_i = int(xywhcp[0][5])
 
@@ -924,114 +921,102 @@ def Rerun(final_image, cnn, threshold = 170):
     return img_binary_lp, result_string
 
 def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
-    try:
-        img, img_draw, cropped_image, restore_img, warp_dst, final_image, img_binary_lp, result_string = RunDemo(yolo, cnn, uploaded_files, version)
-        with st.expander("Step 1"):
-            st.write("Image shape:", img.shape)
-            st.image(img, caption='Uploaded Image.', use_column_width=True)
-            st.info('Trước khi bắt đầu dự đoán thì ta phải resize ảnh về kích thước cố định mà mô hình nhận dạng', icon="ℹ️")
-            code = '''resized_image = cv2.resize(img, (416, 416), interpolation = cv2.INTER_AREA)'''
-            st.code(code, language='python')
-            resized_image = cv2.resize(img, (416, 416), interpolation = cv2.INTER_AREA)
-            st.image(resized_image, caption='Uploaded Image.', use_column_width=True)
-            st.info('Sau khi sử dụng mô hình **YOLOv4** để nhận diện biển số xe thì nên với 1 khoảng để cho boundary box có thể bao toàn bộ biển số xe', icon="ℹ️")
-            code = '''if version == 4:
-            x = int(xywhcp[0][0] * img.shape[1])
-            y = int(xywhcp[0][1] * img.shape[0])
-            w = int(xywhcp[0][2] * img.shape[1]*1.2)
-            h = int(xywhcp[0][3] * img.shape[0]*1.1)'''
-            st.code(code, language='python')
-            st.image(img_draw, caption='Hình ảnh với hình vẽ', use_column_width=True)
+    img, img_draw, cropped_image, restore_img, warp_dst, final_image, img_binary_lp, result_string = RunDemo(yolo, cnn, uploaded_files, version)
+    with st.expander("Step 1"):
+        st.write("Image shape:", img.shape)
+        st.image(img, caption='Uploaded Image.', use_column_width=True)
+        st.info('Trước khi bắt đầu dự đoán thì ta phải resize ảnh về kích thước cố định mà mô hình nhận dạng', icon="ℹ️")
+        code = '''resized_image = cv2.resize(img, (416, 416), interpolation = cv2.INTER_AREA)'''
+        st.code(code, language='python')
+        resized_image = cv2.resize(img, (416, 416), interpolation = cv2.INTER_AREA)
+        st.image(resized_image, caption='Uploaded Image.', use_column_width=True)
+        st.info('Sau khi sử dụng mô hình **YOLOv4** để nhận diện biển số xe thì nên với 1 khoảng để cho boundary box có thể bao toàn bộ biển số xe', icon="ℹ️")
+        code = '''if version == 4:
+        x = int(xywhcp[0][0] * img.shape[1])
+        y = int(xywhcp[0][1] * img.shape[0])
+        w = int(xywhcp[0][2] * img.shape[1]*1.2)
+        h = int(xywhcp[0][3] * img.shape[0]*1.1)'''
+        st.code(code, language='python')
+        st.image(img_draw, caption='Hình ảnh với hình vẽ', use_column_width=True)
 
-            st.info('Cắt ảnh có chứa biển số xe từ hình ảnh ban đầu', icon="ℹ️")
-            code = '''x_min, y_min = int(x - w / 2), int(y - h / 2)
-    x_max, y_max = int(x + w / 2), int(y + h / 2)
+        st.info('Cắt ảnh có chứa biển số xe từ hình ảnh ban đầu', icon="ℹ️")
+        code = '''x_min, y_min = int(x - w / 2), int(y - h / 2)
+x_max, y_max = int(x + w / 2), int(y + h / 2)
 
-    cropped_image = img[y_min:y_max, x_min:x_max]
-    cropped_image = cv2.resize(cropped_image, (115, 100), interpolation = cv2.INTER_AREA)'''
-            st.code(code, language='python')
-            st.image(cropped_image, caption='Cropped Image.', use_column_width=True)
+cropped_image = img[y_min:y_max, x_min:x_max]
+cropped_image = cv2.resize(cropped_image, (115, 100), interpolation = cv2.INTER_AREA)'''
+        st.code(code, language='python')
+        st.image(cropped_image, caption='Cropped Image.', use_column_width=True)
 
-        with st.expander("Step 2"):
-            st.info('Sau khi cắt ảnh thì dùng mô hình GFPGAN để làm tăng chất lượng hình ảnh', icon="ℹ️")
-            code = '''restore_img = func_GFPGAN(input_img=cropped_image, upscale=6)'''
-            st.code(code, language='python')
-            st.image(restore_img, caption='Restoration Image.', use_column_width=True)
+    with st.expander("Step 2"):
+        st.info('Sau khi cắt ảnh thì dùng mô hình GFPGAN để làm tăng chất lượng hình ảnh', icon="ℹ️")
+        code = '''restore_img = func_GFPGAN(input_img=cropped_image, upscale=6)'''
+        st.code(code, language='python')
+        st.image(restore_img, caption='Restoration Image.', use_column_width=True)
 
-        with st.expander("Step 3"):
-            image_copy = restore_img.copy()
-            gray = cv2.cvtColor(restore_img,cv2.COLOR_BGR2GRAY)
-            # Use canny edge detection
-            edges = cv2.Canny(gray,100,200,apertureSize=3)
-            lines = cv2.HoughLinesP(
-                        edges, # Input edge image
-                        1, # Distance resolution in pixels
-                        # np.pi/180, # Angle resolution in radians
-                        np.pi/120, # Angle resolution in radians
-                        threshold=120, # Min number of votes for valid line
-                        minLineLength=250, # Min allowed length of line
-                        maxLineGap= 200 # Max allowed gap between line for joining them
-                        )
+    with st.expander("Step 3"):
+        image_copy = restore_img.copy()
+        gray = cv2.cvtColor(restore_img,cv2.COLOR_BGR2GRAY)
+        # Use canny edge detection
+        edges = cv2.Canny(gray,100,200,apertureSize=3)
+        lines = cv2.HoughLinesP(
+                    edges, # Input edge image
+                    1, # Distance resolution in pixels
+                    # np.pi/180, # Angle resolution in radians
+                    np.pi/120, # Angle resolution in radians
+                    threshold=120, # Min number of votes for valid line
+                    minLineLength=250, # Min allowed length of line
+                    maxLineGap= 200 # Max allowed gap between line for joining them
+                    )
 
-            for line in lines:
-                x1, y1, x2, y2 = line[0]
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            angle_rad = np.arctan2(y2 - y1, x2 - x1)
+            angle_deg_check = np.degrees(angle_rad)
+            # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
+                cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 angle_rad = np.arctan2(y2 - y1, x2 - x1)
-                angle_deg_check = np.degrees(angle_rad)
-                # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
-                    cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    angle_rad = np.arctan2(y2 - y1, x2 - x1)
-                    angle_deg = np.degrees(angle_rad)
-                if y2 > int(restore_img.shape[0]/2) and y2 < int(restore_img.shape[0]) and y1 >  int(restore_img.shape[0]/2) and y1 < int(restore_img.shape[0]) and np.abs(angle_deg_check) < 45:
-                    cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    angle_rad = np.arctan2(y2 - y1, x2 - x1)
-                    angle_deg = np.degrees(angle_rad)
-            st.info('👉 Kết tiếp sẽ tìm những đường thằng và tính góc của đường thẳng đó so với ***Trục Ngang*** 😜', icon="😋")
-            st.image(restore_img, caption='Restoration Image.', use_column_width=True)
-            rotated_image = imutils.rotate(image_copy, angle_deg)
-            if len(result_string) == 0:
-                st.info('Xoay bị sai rồi 😓. Ngàn lời xin lỗi 🥺',icon="🤧")
-                st.image(rotated_image, caption='Rotated Image.', use_column_width=True)
-            else:
-                s = f"<p style='font-size:100px; text-align: center'>😎</p>"
-                st.markdown(s, unsafe_allow_html=True) 
-                st.image(rotated_image, caption='Rotated Image.', use_column_width=True)
+                angle_deg = np.degrees(angle_rad)
+            if y2 > int(restore_img.shape[0]/2) and y2 < int(restore_img.shape[0]) and y1 >  int(restore_img.shape[0]/2) and y1 < int(restore_img.shape[0]) and np.abs(angle_deg_check) < 45:
+                cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                angle_rad = np.arctan2(y2 - y1, x2 - x1)
+                angle_deg = np.degrees(angle_rad)
+        st.info('Kết tiếp sẽ tìm những đường thằng và tính góc của đường thẳng đó so với ***Trục Ngang***', icon="👉")
+        st.image(restore_img, caption='Restoration Image.', use_column_width=True)
+        rotated_image = imutils.rotate(image_copy, angle_deg)
+        if len(result_string) == 0:
+            st.info('Xoay bị sai rồi 😓',icon="🤧")
+            st.image(rotated_image, caption='Rotated Image.', use_column_width=True)
+        else:
+            st.info('Sau xoay ảnh song song với Trục Ngang thì tiếp dùng kĩ thuật xoay ***Affine*** để xoay ảnh 2D', icon="👉")
+            st.image(rotated_image, caption='Rotated Image.', use_column_width=True)
 
-                st.info('👉 Sau xoay ảnh song song với Trục Ngang thì tiếp dùng kĩ thuật xoay ***Affine*** để xoay ảnh 2D', icon="😏")
-                st.image(warp_dst, caption='WARP_DST Image.', use_column_width=True)
+            st.info('Cắt bỏ phần thừa phía trên vào dưới của biển số xe', icon="👉")
+            st.image(warp_dst, caption='WARP_DST Image.', use_column_width=True)
 
-                st.info('👉 Ảnh còn thừa 2 bên bóp ảnh thêm tí =))', icon="🤣")
-                st.image(final_image, caption='........', use_column_width=True)
+            st.info('Cắt bỏ đi phần thừa 2 bên của biến số xe', icon="👉")
+            st.image(final_image, caption='........', use_column_width=True)
 
-        with st.expander("Step 4"):
-            st.info('Dẫy á', icon="🙈")
-            st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-            if len(result_string) == 0:
-                s = f"<p style='font-size:100px; text-align: center'>🥺</p>"
-                st.markdown(s, unsafe_allow_html=True) 
-            elif len(result_string) > 0 and len(result_string) < 9:
-                try:
-                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
-                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+    with st.expander("Step 4"):
+        st.info('Kết quả sau khi sử dụng hàm findContours code xử lý ảnh để tìm ra các chữ số. Sau có sử dụng mô hình CNN để nhận diện kí tự.', icon="👉")
+        st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+        if len(result_string) == 0:
+            s = f"<p style='font-size:100px; text-align: center'>🥺</p>"
+            st.markdown(s, unsafe_allow_html=True) 
+        elif len(result_string) > 0 and len(result_string) < 9:
+            try:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
+                st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+                if len(result_string) >=0 and len(result_string) < 9:
+                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
                     if len(result_string) >=0 and len(result_string) < 9:
-                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
-                        if len(result_string) >=0 and len(result_string) < 9:
-                            img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
-                            if(len(result_string) <8):
-                                s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
-                                st.markdown(s, unsafe_allow_html=True) 
-                            else:
-                                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                                st.markdown(s, unsafe_allow_html=True) 
-                                df = pd.read_excel('./BANG_SO_XE.xlsx')
-                                data_array = df.values
-                                for i in range(len(data_array)):
-                                    if np.char.strip(data_array[i][1]) == result_string[:4]:
-                                        s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
-                                        st.markdown(s, unsafe_allow_html=True)
-                                        break
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
+                        if(len(result_string) <8):
+                            s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
+                            st.markdown(s, unsafe_allow_html=True) 
                         else:
-                            s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                            s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                             st.markdown(s, unsafe_allow_html=True) 
                             df = pd.read_excel('./BANG_SO_XE.xlsx')
                             data_array = df.values
@@ -1041,7 +1026,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                     st.markdown(s, unsafe_allow_html=True)
                                     break
                     else:
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
@@ -1050,64 +1035,62 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
-                except:
+                else:
+                    s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
+                    df = pd.read_excel('./BANG_SO_XE.xlsx')
+                    data_array = df.values
+                    for i in range(len(data_array)):
+                        if np.char.strip(data_array[i][1]) == result_string[:4]:
+                            s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
+                            st.markdown(s, unsafe_allow_html=True)
+                            break
+            except:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+                if(len(result_string) <8):
+                    s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
+                else:
+                    s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
+
+                    df = pd.read_excel('./BANG_SO_XE.xlsx')
+                    data_array = df.values
+                    for i in range(len(data_array)):
+                        if np.char.strip(data_array[i][1]) == result_string[:4]:
+                            s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
+                            st.markdown(s, unsafe_allow_html=True)
+                            break
+
+        elif len(result_string) == 9:
+            s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
+            st.markdown(s, unsafe_allow_html=True) 
+
+            df = pd.read_excel('./BANG_SO_XE.xlsx')
+            data_array = df.values
+            for i in range(len(data_array)):
+                if np.char.strip(data_array[i][1]) == result_string[:4]:
+                    s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
+                    st.markdown(s, unsafe_allow_html=True)
+                    break
+        else:
+            try:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
+                st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+                if len(result_string) >=0 and len(result_string) < 9:
                     img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
-                    if(len(result_string) <8):
-                        s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
-                        st.markdown(s, unsafe_allow_html=True) 
-                    else:
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                        st.markdown(s, unsafe_allow_html=True) 
-
-                        df = pd.read_excel('./BANG_SO_XE.xlsx')
-                        data_array = df.values
-                        for i in range(len(data_array)):
-                            if np.char.strip(data_array[i][1]) == result_string[:4]:
-                                s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
-                                st.markdown(s, unsafe_allow_html=True)
-                                break
-
-            elif len(result_string) == 9:
-                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                st.markdown(s, unsafe_allow_html=True) 
-
-                df = pd.read_excel('./BANG_SO_XE.xlsx')
-                data_array = df.values
-                for i in range(len(data_array)):
-                    if np.char.strip(data_array[i][1]) == result_string[:4]:
-                        s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
-                        st.markdown(s, unsafe_allow_html=True)
-                        break
-            else:
-                try:
-                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
-                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                     if len(result_string) >=0 and len(result_string) < 9:
-                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
-                        if len(result_string) >=0 and len(result_string) < 9:
-                            img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
-                            if(len(result_string) <8):
-                                s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
-                                st.markdown(s, unsafe_allow_html=True) 
-                            else:
-                                st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                                st.markdown(s, unsafe_allow_html=True) 
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
+                        if(len(result_string) <8):
+                            s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
+                            st.markdown(s, unsafe_allow_html=True) 
                         else:
                             st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                            s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                            s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                             st.markdown(s, unsafe_allow_html=True) 
-
-                            df = pd.read_excel('./BANG_SO_XE.xlsx')
-                            data_array = df.values
-                            for i in range(len(data_array)):
-                                if np.char.strip(data_array[i][1]) == result_string[:4]:
-                                    s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
-                                    st.markdown(s, unsafe_allow_html=True)
-                                    break
                     else:
                         st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
@@ -1117,25 +1100,35 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
                                 st.markdown(s, unsafe_allow_html=True)
                                 break
-                except:
-                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
-                    if(len(result_string) <8):
-                        s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
-                        st.markdown(s, unsafe_allow_html=True) 
-                    else:
-                        st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                        st.markdown(s, unsafe_allow_html=True) 
+                else:
+                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+                    s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
 
-                        df = pd.read_excel('./BANG_SO_XE.xlsx')
-                        data_array = df.values
-                        for i in range(len(data_array)):
-                            if np.char.strip(data_array[i][1]) == result_string[:4]:
-                                s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
-                                st.markdown(s, unsafe_allow_html=True)
-                                break
-    except Exception:
-        pass
+                    df = pd.read_excel('./BANG_SO_XE.xlsx')
+                    data_array = df.values
+                    for i in range(len(data_array)):
+                        if np.char.strip(data_array[i][1]) == result_string[:4]:
+                            s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
+                            st.markdown(s, unsafe_allow_html=True)
+                            break
+            except:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+                if(len(result_string) <8):
+                    s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
+                else:
+                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
+                    s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
+                    st.markdown(s, unsafe_allow_html=True) 
+
+                    df = pd.read_excel('./BANG_SO_XE.xlsx')
+                    data_array = df.values
+                    for i in range(len(data_array)):
+                        if np.char.strip(data_array[i][1]) == result_string[:4]:
+                            s = f"<p style='font-size:40px;'>👉👈 {data_array[i][0]}</p>"
+                            st.markdown(s, unsafe_allow_html=True)
+                            break
 
 add_page_title()
 uploaded_files = st.file_uploader("Choose an image file", accept_multiple_files=True)

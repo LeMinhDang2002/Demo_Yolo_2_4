@@ -210,10 +210,8 @@ def soft_nms(xywhcp, class_num=1,
                         delete_list.append(overlap_index)
         xywhcp_class = np.delete(xywhcp_class, delete_list, axis=0)
         xywhcp_new.append(xywhcp_class)
-    if version == 3:
-        xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[4])
-    if version == 4:
-        xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[3])
+
+    xywhcp_new = sorted(xywhcp_new[0], reverse=True, key=lambda x:x[4])
     xywhcp = np.vstack(xywhcp_new)
     return xywhcp
 
@@ -556,12 +554,12 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
         if version == 4:
             x = int(xywhcp[0][0] * img.shape[1])
             y = int(xywhcp[0][1] * img.shape[0])
-            w = int(xywhcp[0][2] * img.shape[1]*1.2)
-            h = int(xywhcp[0][3] * img.shape[0]*1.1)
+            w = int(xywhcp[0][2] * img.shape[1]*1.4)
+            h = int(xywhcp[0][3] * img.shape[0]*1.2)
         else:
             x = int(xywhcp[0][0] * img.shape[1])
             y = int(xywhcp[0][1] * img.shape[0])
-            w = int(xywhcp[0][2] * img.shape[1] * 1.4)
+            w = int(xywhcp[0][2] * img.shape[1] * 1.3)
             h = int(xywhcp[0][3] * img.shape[0] * 1.1)
         class_i = int(xywhcp[0][5])
 
@@ -1012,7 +1010,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
                                 st.markdown(s, unsafe_allow_html=True) 
                             else:
-                                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                                s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                                 st.markdown(s, unsafe_allow_html=True) 
                                 df = pd.read_excel('./BANG_SO_XE.xlsx')
                                 data_array = df.values
@@ -1022,7 +1020,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                         st.markdown(s, unsafe_allow_html=True)
                                         break
                         else:
-                            s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                            s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                             st.markdown(s, unsafe_allow_html=True) 
                             df = pd.read_excel('./BANG_SO_XE.xlsx')
                             data_array = df.values
@@ -1032,7 +1030,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                     st.markdown(s, unsafe_allow_html=True)
                                     break
                     else:
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
                         data_array = df.values
@@ -1047,7 +1045,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
                         st.markdown(s, unsafe_allow_html=True) 
                     else:
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
@@ -1059,7 +1057,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 break
 
             elif len(result_string) == 9:
-                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                 st.markdown(s, unsafe_allow_html=True) 
 
                 df = pd.read_excel('./BANG_SO_XE.xlsx')
@@ -1082,11 +1080,11 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 st.markdown(s, unsafe_allow_html=True) 
                             else:
                                 st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                                s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                                s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                                 st.markdown(s, unsafe_allow_html=True) 
                         else:
                             st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                            s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                            s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                             st.markdown(s, unsafe_allow_html=True) 
 
                             df = pd.read_excel('./BANG_SO_XE.xlsx')
@@ -1098,7 +1096,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                     break
                     else:
                         st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')
@@ -1115,7 +1113,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         st.markdown(s, unsafe_allow_html=True) 
                     else:
                         st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
+                        s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
                         df = pd.read_excel('./BANG_SO_XE.xlsx')

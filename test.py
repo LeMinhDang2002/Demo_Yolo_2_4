@@ -687,16 +687,10 @@ def RunDemo(yolo, cnn, image, version = 2):
     xywhcc.append(xywhcp[0][4])
     xywhcc.append(xywhcp[0][5])
 
-    if version == 4:
-        x = int(xywhcp[0][0] * image.shape[1])
-        y = int(xywhcp[0][1] * image.shape[0])
-        w = int(xywhcp[0][2] * image.shape[1]*1.2)
-        h = int(xywhcp[0][3] * image.shape[0]*1.1)
-    else:
-        x = int(xywhcp[0][0] * image.shape[1])
-        y = int(xywhcp[0][1] * image.shape[0])
-        w = int(xywhcp[0][2] * image.shape[1] * 1.4)
-        h = int(xywhcp[0][3] * image.shape[0] * 1.1)
+    x = int(xywhcp[0][0] * image.shape[1])
+    y = int(xywhcp[0][1] * image.shape[0])
+    w = int(xywhcp[0][2] * image.shape[1]*1.3)
+    h = int(xywhcp[0][3] * image.shape[0]*1.1)
     class_i = int(xywhcp[0][5])
 
     # Vẽ hình tròn
@@ -1106,27 +1100,11 @@ def RunDemo(yolo, cnn, image, version = 2):
                     img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
                     if len(result_string) >=0 and len(result_string) < 9:
                         img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 130)
-                        # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        # s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                        # st.markdown(s, unsafe_allow_html=True) 
-                    # else:
-                    #     # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                    #     s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                    #     st.markdown(s, unsafe_allow_html=True) 
-                # else:
-                #     # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                #     s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                #     st.markdown(s, unsafe_allow_html=True) 
             except:
                 img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
-                # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                # s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                # st.markdown(s, unsafe_allow_html=True) 
 
         elif len(result_string) == 9:
             pass
-            # s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-            # st.markdown(s, unsafe_allow_html=True) 
         else:
             try:
                 img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
@@ -1135,24 +1113,9 @@ def RunDemo(yolo, cnn, image, version = 2):
                     img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
                     if len(result_string) >=0 and len(result_string) < 9:
                         img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
-                        # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                        # s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                        # st.markdown(s, unsafe_allow_html=True) 
-                #     else:
-                #         # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                #         s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                #         st.markdown(s, unsafe_allow_html=True) 
-                # else:
-                #     # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                #     s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                #     st.markdown(s, unsafe_allow_html=True) 
             except:
                 img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
-                # st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
-                # s = f"<p style='font-size:40px;'>🥳 {result_string}</p>"
-                # st.markdown(s, unsafe_allow_html=True) 
 
-    # return img, img_draw, cropped_image, restore_img, warp_dst, final_image, img_binary_lp, result_string
     return result_string, xywhcc
 
 def RunPrediction(yolo, image, version = 2):
@@ -1174,7 +1137,8 @@ def RunPrediction(yolo, image, version = 2):
         xywhcp = decode(prediction[2][0],prediction[1][0],prediction[0][0] , class_num=num_classes, threshold=0.5, version=2)
 
     if len(xywhcp) > 0 and version == 2:
-        xywhcp = nms(xywhcp, num_classes, 0.7)
+        # xywhcp = nms(xywhcp, num_classes, 0.7)
+        xywhcp = soft_nms(xywhcp, num_classes, 0.5, version=version)
     elif len(xywhcp) > 0 and version == 3:
         xywhcp = soft_nms(xywhcp, num_classes, 0.5, version=version)
     elif len(xywhcp) > 0 and version == 4:
@@ -1193,18 +1157,6 @@ def RunPrediction(yolo, image, version = 2):
 
 with st.form("select_anchors"):
     path_test = st.text_input('Nhập đường dẫn tới thư mục chứa dữ liệu test', placeholder="Path....")
-    # s = r"$ mIoU =  \frac{1}{N}\sum_{i=1}^{N} \frac{\text{Area\ of\ Overlap}}{\text{Area\ of\ Union}} $"
-    # styled_s = f"""<span class="markdown-css">{s}</span>"""
-
-    # style = """
-    # <style>
-    #     .markdown-css {
-    #         font-size: 24px;
-    #         text-align: center;
-    #         display: block;
-    #     }
-    # </style>
-    # """
 
     # st.markdown(styled_s + style, unsafe_allow_html=True)
     select_model = st.selectbox("Chọn mô hình", ("Yolov2", "Yolov3", "Yolov4"))
@@ -1296,20 +1248,25 @@ if start:
 
         is_all_ones = np.all(np_list_recall == 1.0)
         is_all_zero = np.all(np_list_recall == 0.0)
-        if is_all_ones:
+        all_zero_or_one = np.all((np_list_recall == 0.0) | (np_list_recall == 1.0))
+        if all_zero_or_one:
             AP = np.sum(np_list_precision)
-        elif is_all_zero:
-            AP = 0.0
+            AP = round(AP / len(list_recall), 2)  
         else:
-            for i in range(1, len(list_recall)):
-                AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
-        try:
-            if is_all_ones or is_all_zero:
-                AP = round(AP / len(list_recall), 2)    
+            if is_all_ones:
+                AP = np.sum(np_list_precision)
+            elif is_all_zero:
+                AP = 0.0
             else:
-                AP = round(AP, 2)
-        except:
-            pass
+                for i in range(1, len(list_recall)):
+                    AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
+            try:
+                if is_all_ones or is_all_zero:
+                    AP = round(AP / len(list_recall), 2)    
+                else:
+                    AP = round(AP, 2)
+            except:
+                pass
 
         end_time = time.time()
         interval = end_time - start_time
@@ -1389,23 +1346,29 @@ if start:
         AP = 0.0
         np_list_precision = np.array(list_precision)
         np_list_recall = np.array(list_recall)
-
+        print(list_recall)
+        print(list_precision)
         is_all_ones = np.all(np_list_recall == 1.0)
         is_all_zero = np.all(np_list_recall == 0.0)
-        if is_all_ones:
+        all_zero_or_one = np.all((np_list_recall == 0.0) | (np_list_recall == 1.0))
+        if all_zero_or_one:
             AP = np.sum(np_list_precision)
-        elif is_all_zero:
-            AP = 0.0
+            AP = round(AP / len(list_recall), 2)  
         else:
-            for i in range(1, len(list_recall)):
-                AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
-        try:
-            if is_all_ones or is_all_zero:
-                AP = round(AP / len(list_recall), 2)    
+            if is_all_ones:
+                AP = np.sum(np_list_precision)
+            elif is_all_zero:
+                AP = 0.0
             else:
-                AP = round(AP, 2)
-        except:
-            pass
+                for i in range(1, len(list_recall)):
+                    AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
+            try:
+                if is_all_ones or is_all_zero:
+                    AP = round(AP / len(list_recall), 2)    
+                else:
+                    AP = round(AP, 2)
+            except:
+                pass
 
         end_time = time.time()
         interval = end_time - start_time
@@ -1490,20 +1453,25 @@ if start:
         print(list_precision)
         is_all_ones = np.all(np_list_recall == 1.0)
         is_all_zero = np.all(np_list_recall == 0.0)
-        if is_all_ones:
+        all_zero_or_one = np.all((np_list_recall == 0.0) | (np_list_recall == 1.0))
+        if all_zero_or_one:
             AP = np.sum(np_list_precision)
-        elif is_all_zero:
-            AP = 0.0
+            AP = round(AP / len(list_recall), 2)  
         else:
-            for i in range(1, len(list_recall)):
-                AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
-        try:
-            if is_all_ones or is_all_zero:
-                AP = round(AP / len(list_recall), 2)    
+            if is_all_ones:
+                AP = np.sum(np_list_precision)
+            elif is_all_zero:
+                AP = 0.0
             else:
-                AP = round(AP, 2)
-        except:
-            pass
+                for i in range(1, len(list_recall)):
+                    AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
+            try:
+                if is_all_ones or is_all_zero:
+                    AP = round(AP / len(list_recall), 2)    
+                else:
+                    AP = round(AP, 2)
+            except:
+                pass
         end_time = time.time()
         interval = end_time - start_time
         hours = int(interval // 3600)
