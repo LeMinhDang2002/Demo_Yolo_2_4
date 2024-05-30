@@ -63,5 +63,5 @@
 1. Home page
 
 <p align="center">
-  <img src="./Image_Readme/img_1.jpg" style="width: 100px;">
+  <img src="./Image_Readme/img_1.jpg" style="width: 400px;">
 </p>
