@@ -63,5 +63,27 @@
 1. Home page
 
 <p align="center">
-  <img src="./Image_Readme/img_1.jpg" style="width: 400px;">
+  <img src="./Image_Readme/img_1.jpg">
+</p>
+
+2. Train Page
+
+<p align="center">
+  <img src="./Image_Readme/img_2.jpg">
+</p>
+
+3. Test Page
+
+<p align="center">
+  <img src="./Image_Readme/img_3.jpg">
+</p>
+
+4. Prediction Page
+
+<p align="center">
+  <img src="./Image_Readme/img_4.jpg">
+</p>
+---
+<p align="center">
+  <img src="./Image_Readme/img_5.jpg">
 </p>
