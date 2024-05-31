@@ -2587,7 +2587,7 @@ from st_pages import Page, Section, add_page_title, show_pages
 
 show_pages(
     [
-        Page("home.py", "Home", "🏠"),
+        Page("home.py", "Trang Chủ", "🏠"),
         Page("train.py", "Train Model", "🧰"),
         Page("test.py", "Test Model", "🧰"),
 
@@ -2608,4 +2608,13 @@ show_pages(
     ]
 )
 add_page_title()
-st.write('=))')
+s = f"<h1 style='text-align: center; color:#ED8C02; font-size:70px;'>Khóa Luận Tốt Nghiệp</h1>"
+st.markdown(s, unsafe_allow_html=True) 
+s = f"<h1 style='text-align: center;'>Xây Dựng Hệ Thống Nhận Diện Biển Số Xe Bằng Mô Hình Học Sâu</h1>"
+st.markdown(s, unsafe_allow_html=True) 
+s = f"<p style='text-align: right; font-size:30px;'>GVHD: TS Nguyễn Thành Sơn</p>"
+st.markdown(s, unsafe_allow_html=True)  
+s = f"<p style='text-align: right; font-size:30px;'>20133034 - Lê Minh Đăng</p>"
+st.markdown(s, unsafe_allow_html=True) 
+s = f"<p style='text-align: right; font-size:30px;'>20133075 - Võ Hoàng Nguyên</p>"
+st.markdown(s, unsafe_allow_html=True) 
