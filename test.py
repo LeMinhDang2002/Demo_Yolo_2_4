@@ -1202,7 +1202,7 @@ if start:
 
         list_recall = []
         list_precision = []
-        list_iou = [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]
+        list_iou = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
         for i in range(len(list_iou)):
             TP, FP, FN = 0,0,0
             for item in contents:
@@ -1243,6 +1243,7 @@ if start:
                 pass
 
         AP = 0.0
+        list_recall = sorted(list_recall)
         np_list_precision = np.array(list_precision)
         np_list_recall = np.array(list_recall)
 
@@ -1303,7 +1304,7 @@ if start:
 
         list_recall = []
         list_precision = []
-        list_iou = [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]
+        list_iou = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
         for i in range(len(list_iou)):
             TP, FP, FN = 0,0,0
             for item in contents:
@@ -1344,6 +1345,7 @@ if start:
                 pass
 
         AP = 0.0
+        list_recall = sorted(list_recall)
         np_list_precision = np.array(list_precision)
         np_list_recall = np.array(list_recall)
         print(list_recall)
@@ -1405,7 +1407,7 @@ if start:
 
         list_recall = []
         list_precision = []
-        list_iou = [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5]
+        list_iou = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
         for i in range(len(list_iou)):
             TP, FP, FN = 0,0,0
             for item in contents:
@@ -1446,6 +1448,7 @@ if start:
                 pass
 
         AP = 0.0
+        list_recall = sorted(list_recall)
         np_list_precision = np.array(list_precision)
         np_list_recall = np.array(list_recall)
 

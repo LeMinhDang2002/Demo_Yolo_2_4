@@ -17,7 +17,7 @@ optimizer = Adam(learning_rate=5e-5)
 import numpy as np
 import math
 from collections.abc import Iterable
-import matplotlib.pyplot as plt
+import gdown
 
 from utils import tools
 
@@ -2473,7 +2473,16 @@ async def load_Yolov2():
             [0.16138585, 0.21843861],
             [0.13676852, 0.18154225]]
     yolo.create_model(anchors=anchors)
-    yolo.model.load_weights('./Weights/yolov2_3_anchor.h5')
+    # yolo.model.load_weights('./Weights/yolov2_3_anchor.h5')
+    if not os.path.exists('./Weights'):
+        os.makedirs('./Weights')
+
+    weights_path = './Weights/yolov2_3_anchor.h5'
+
+    url = 'https://drive.usercontent.google.com/download?id=11jjH0-RJ_YLeATif4rQxWHjgWpWdVCQC&export=download&authuser=0&confirm=t&uuid=f27cf7c5-10fd-4f52-83c2-e6627102af5a&at=APZUnTVrI7xHpvO3zsxzqxow8-W3:1717180727684'
+
+    gdown.download(url, weights_path, quiet=False)
+    yolo.model.load_weights(weights_path)
     return yolo
 
 async def load_Yolov3():
