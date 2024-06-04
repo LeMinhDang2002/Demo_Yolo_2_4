@@ -16,7 +16,12 @@
     .\env\Scripts\Activate.ps1
     ```
 
-3. Clone GFPGAN
+3. Install dependent packages
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. Clone GFPGAN
     ```bash
     git clone https://github.com/TencentARC/GFPGAN.git
     ```
@@ -32,11 +37,7 @@
     pip install -r requirements.txt
 
     ```
-4. Install dependent packages
-    ```bash
-    cd ..
-    pip install -r requirements.txt
-    ```
+
 5. In file .\DEMO_YOLO_2_4\env\lib\site-packages\basicsr\data\degradations.py
     ```bash
     Change
@@ -55,6 +56,7 @@
 
 8. Run code
     ```bash
+    cd ..
     streamlit run home.py
     ```
 ---
