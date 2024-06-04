@@ -1,6 +1,6 @@
 ########## Yolo ##########
 from keras.models import Model
-from keras.layers import Input, Conv2D, concatenate, ZeroPadding2D, LeakyReLU, BatchNormalization, concatenate, MaxPooling2D, UpSampling2D, Concatenate, RandomNormal, Layer, Add, LeakyReLU
+from keras.layers import Input, Conv2D, concatenate, ZeroPadding2D, LeakyReLU, BatchNormalization, concatenate, MaxPooling2D, UpSampling2D, Concatenate, Layer, Add, LeakyReLU
 from keras.initializers import RandomNormal
 from keras.regularizers import l2
 import tensorflow as tf
@@ -3034,12 +3034,7 @@ async def load_Yolov2():
             [0.16138585, 0.21843861],
             [0.13676852, 0.18154225]]
     yolo.create_model(anchors=anchors)
-    # yolo.model.load_weights('./Weights/yolov2_3_anchor.h5')
-    if not os.path.exists('./Weights'):
-        os.makedirs('./Weights')
-
-    weights_path = './Weights/yolov2_3_anchor.h5'
-    yolo.model.load_weights(weights_path)
+    yolo.model.load_weights('./Weights/yolov2_3_anchor.h5')
     return yolo
 
 async def load_Yolov3():
