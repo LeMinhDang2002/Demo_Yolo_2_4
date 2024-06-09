@@ -565,10 +565,10 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
             angle_rad = np.arctan2(y2 - y1, x2 - x1)
             angle_deg_check = np.degrees(angle_rad)
             # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            # if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
-            #     cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            #     angle_rad = np.arctan2(y2 - y1, x2 - x1)
-            #     angle_deg = np.degrees(angle_rad)
+            if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
+                cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                angle_rad = np.arctan2(y2 - y1, x2 - x1)
+                angle_deg = np.degrees(angle_rad)
             if y2 > int(restore_img.shape[0]/2) and y2 < int(restore_img.shape[0]) and y1 >  int(restore_img.shape[0]/2) and y1 < int(restore_img.shape[0]) and np.abs(angle_deg_check) < 45:
                 cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 angle_rad = np.arctan2(y2 - y1, x2 - x1)
@@ -632,7 +632,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
 
         if(distance_top != 600):
             # print(y_min, y_max)
-            cropped_image = rotated_image[np.abs(y_min - 10):y_max + 10, :]
+            cropped_image = rotated_image[np.abs(y_min - 15):y_max + 15, :]
             # src = rotated_image.copy()
             src = cropped_image.copy()
             srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
@@ -643,7 +643,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
 
         if(distance_bottom != 600):
             # print(y_min, y_max)
-            cropped_image = rotated_image[np.abs(y_min - 10):y_max + 10, :]
+            cropped_image = rotated_image[np.abs(y_min - 15):y_max + 15, :]
             # src = rotated_image.copy()
             src = cropped_image.copy()
             srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
@@ -1095,4 +1095,4 @@ try:
     DisplayDemo(st.session_state.yolov4, st.session_state.cnn, uploaded_files, version=4)
 except:
     s = f"<p style='font-size:40px;'>Ảnh không thể nhận diện được</p>"
-    st.markdown(s, unsafe_allow_html=True) 
+    st.markdown(s, unsafe_allow_html=True)

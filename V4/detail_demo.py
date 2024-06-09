@@ -440,10 +440,10 @@ def RunDemo(yolo, cnn, uploaded_files, version = 2):
                 angle_rad = np.arctan2(y2 - y1, x2 - x1)
                 angle_deg_check = np.degrees(angle_rad)
                 # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                # if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
-                #     # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                #     angle_rad = np.arctan2(y2 - y1, x2 - x1)
-                #     angle_deg = np.degrees(angle_rad)
+                if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
+                    # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    angle_rad = np.arctan2(y2 - y1, x2 - x1)
+                    angle_deg = np.degrees(angle_rad)
                 if y2 > int(restore_img.shape[0]/2) and y2 < int(restore_img.shape[0]) and y1 >  int(restore_img.shape[0]/2) and y1 < int(restore_img.shape[0]) and np.abs(angle_deg_check) < 45:
                     # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     angle_rad = np.arctan2(y2 - y1, x2 - x1)
@@ -499,7 +499,7 @@ def RunDemo(yolo, cnn, uploaded_files, version = 2):
                             deg = np.abs(angle_deg)
 
             if(distance_top != 600):
-                crop_image = rotated_image[np.abs(y_min - 10):y_max + 10, :]
+                crop_image = rotated_image[np.abs(y_min - 15):y_max + 15, :]
                 src = crop_image.copy()
                 srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
                 dstTri = np.array( [[-distance_top, 0], [src.shape[1], 0 ], [0 , src.shape[0]]] ).astype(np.float32)
@@ -507,7 +507,7 @@ def RunDemo(yolo, cnn, uploaded_files, version = 2):
                 warp_dst = cv2.warpAffine(src, warp_mat, (src.shape[1], src.shape[0]))
 
             if(distance_bottom != 600):
-                crop_image = rotated_image[np.abs(y_min - 10):y_max + 10, :]
+                crop_image = rotated_image[np.abs(y_min - 15):y_max + 15, :]
                 src = crop_image.copy()
                 srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
                 dstTri = np.array( [[0, 0], [src.shape[1], 0 ], [-distance_bottom , src.shape[0]]] ).astype(np.float32)
