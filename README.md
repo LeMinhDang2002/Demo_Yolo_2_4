@@ -48,8 +48,7 @@
 
 6. Download weights
     1. Download all file weight on [Google Drive](https://drive.google.com/drive/u/0/folders/107Mbd57HGSR5UPSTwB4yCKrMrJfbn-ri)
-    2. Create Weight folder in Demo_Yolo_2_4 folder
-    3. Save file `yolov2_3_anchor.h5`, `yolov3_3_anchor.h5`, `yolov4_mish_3_anchor.h5`, `cnn_epochs_6.h5` in the Weights folder
+    2. Save file `yolov2_3_anchor.h5`, `yolov3_3_anchor.h5`, `yolov4_mish_3_anchor.h5`, `cnn_epochs_6.h5` in the Weights folder
 
 7. Download Image
     1. Download images [Google Drive](https://drive.google.com/drive/u/0/folders/1FdTowwdpC7T-9KiS_Edi-DK1Ch90R144)
