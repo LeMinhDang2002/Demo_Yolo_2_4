@@ -13,15 +13,18 @@
 2. Create ENV
     ```bash
     C:\Users\Tên Máy\AppData\Local\Programs\Python\Python310\python.exe -m venv env
-    .\env\Scripts\Activate.ps1
     ```
 
-3. Install dependent packages
+3. Activate environment
+    ```bash
+    .\env\Scripts\Activate.ps1
+    ```
+4. Install dependent packages
     ```bash
     pip install -r requirements.txt
     ```
 
-4. Clone GFPGAN
+5. Clone GFPGAN
     ```bash
     git clone https://github.com/TencentARC/GFPGAN.git
     ```
@@ -38,7 +41,7 @@
 
     ```
 
-5. In file .\DEMO_YOLO_2_4\env\lib\site-packages\basicsr\data\degradations.py
+6. In file .\DEMO_YOLO_2_4\env\lib\site-packages\basicsr\data\degradations.py
     ```bash
     Change
     from torchvision.transforms.functional_tensor import rgb_to_grayscale
@@ -46,14 +49,14 @@
     from torchvision.transforms.functional import rgb_to_grayscale
     ```
 
-6. Download weights
+7. Download weights
     1. Download all file weight on [Google Drive](https://drive.google.com/drive/u/0/folders/107Mbd57HGSR5UPSTwB4yCKrMrJfbn-ri)
     2. Save file `yolov2_3_anchor.h5`, `yolov3_3_anchor.h5`, `yolov4_mish_3_anchor.h5`, `cnn_epochs_6.h5` in the Weights folder
 
-7. Download Image
+8. Download Image
     1. Download images [Google Drive](https://drive.google.com/drive/u/0/folders/1FdTowwdpC7T-9KiS_Edi-DK1Ch90R144)
 
-8. Run code
+9. Run code
     ```bash
     cd ..
     streamlit run home.py
