@@ -1983,60 +1983,60 @@ class Yolov4(object):
     Note: if use GPU then activate_type = mish, CPU: activate_type = leaky
     '''
     def CSP_Backbone_darknet(self, input_tensor):
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3,  3,  32), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 32,  64), downsample=True, activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3,  3,  32), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 32,  64), downsample=True, activate_type="mish")
 
         route = input_tensor
-        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 64, 64), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="leaky")
+        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 64, 64), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="mish")
         for i in range(1):
-            input_tensor = self.DarknetResidual(input_tensor,  64,  32, 64, activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="leaky")
+            input_tensor = self.DarknetResidual(input_tensor,  64,  32, 64, activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="mish")
 
         input_tensor = tf.concat([input_tensor, route], axis=-1)
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 64), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 64, 128), downsample=True, activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 64), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 64, 128), downsample=True, activate_type="mish")
         route = input_tensor
-        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 128, 64), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 64), activate_type="leaky")
+        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 128, 64), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 64), activate_type="mish")
         for i in range(2):
-            input_tensor = self.DarknetResidual(input_tensor, 64,  64, 64, activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="leaky")
+            input_tensor = self.DarknetResidual(input_tensor, 64,  64, 64, activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 64, 64), activate_type="mish")
         input_tensor = tf.concat([input_tensor, route], axis=-1)
 
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 128), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 128, 256), downsample=True, activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 128), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 128, 256), downsample=True, activate_type="mish")
         route = input_tensor
-        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 256, 128), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 128), activate_type="leaky")
+        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 256, 128), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 128), activate_type="mish")
         for i in range(8):
-            input_tensor = self.DarknetResidual(input_tensor, 128, 128, 128, activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 128), activate_type="leaky")
+            input_tensor = self.DarknetResidual(input_tensor, 128, 128, 128, activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 128, 128), activate_type="mish")
         input_tensor = tf.concat([input_tensor, route], axis=-1)
 
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 256), activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 256), activate_type="mish")
         route_1 = input_tensor
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 256, 512), downsample=True, activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 256, 512), downsample=True, activate_type="mish")
         route = input_tensor
-        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 512, 256), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 256), activate_type="leaky")
+        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 512, 256), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 256), activate_type="mish")
         for i in range(8):
-            input_tensor = self.DarknetResidual(input_tensor, 256, 256, 256, activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 256), activate_type="leaky")
+            input_tensor = self.DarknetResidual(input_tensor, 256, 256, 256, activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 256, 256), activate_type="mish")
         input_tensor = tf.concat([input_tensor, route], axis=-1)
 
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 512), activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 512), activate_type="mish")
         route_2 = input_tensor
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 512, 1024), downsample=True, activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 512, 1024), downsample=True, activate_type="mish")
         route = input_tensor
-        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 1024, 512), activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 512), activate_type="leaky")
+        route = self.DarknetConv2D_BN_Leaky(route, (1, 1, 1024, 512), activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 512), activate_type="mish")
         for i in range(4):
-            input_tensor = self.DarknetResidual(input_tensor, 512, 512, 512, activate_type="leaky")
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 512), activate_type="leaky")
+            input_tensor = self.DarknetResidual(input_tensor, 512, 512, 512, activate_type="mish")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 512, 512), activate_type="mish")
         input_tensor = tf.concat([input_tensor, route], axis=-1)
 
-        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 1024), activate_type="leaky")
+        input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 1024), activate_type="mish")
         input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 512))
         input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (3, 3, 512, 1024))
         input_tensor = self.DarknetConv2D_BN_Leaky(input_tensor, (1, 1, 1024, 512))
@@ -3076,7 +3076,7 @@ async def load_Yolov4():
     #         [0.14512712, 0.18811882],
     #         [0.1292373 , 0.16831683]]
     yolo.create_model(anchors=anchors)
-    yolo.model.load_weights('./Weights/yolov4_3_anchor.h5')
+    yolo.model.load_weights('./Weights/yolov4_mish_3_anchor.h5')
     return yolo
 
 async def load_CNN():

@@ -453,6 +453,7 @@ def Rerun(final_image, cnn, threshold = 170):
         normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
         resized_finalimage = cv2.resize(normalized_image, (75, 100))
+        st.image(resized_finalimage, caption='...', use_column_width=True)
 
         resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
         predicts = cnn.predict(resized_finalimage)
@@ -788,6 +789,7 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                 normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
                 resized_finalimage = cv2.resize(normalized_image, (75, 100))
+                st.image(resized_finalimage, caption='...', use_column_width=True)
 
                 resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
                 predicts = cnn.predict(resized_finalimage)
@@ -946,8 +948,10 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                 normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
                 resized_finalimage = cv2.resize(normalized_image, (75, 100))
+                st.image(resized_finalimage, caption='...', use_column_width=True)
 
                 resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
+
                 predicts = cnn.predict(resized_finalimage)
                 predicted_class = np.argmax(predicts, axis=1)
                 print(predicted_class[0])
