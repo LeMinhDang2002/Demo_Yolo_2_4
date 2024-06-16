@@ -20,3 +20,11 @@ tb-nightly
 realesrgan
 openpyxl
 st_pages
+thop
+imageio
+pycocotools
+onnxsim
+onnxruntime
+openvino
+loguru
+albumentations

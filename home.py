@@ -2156,8 +2156,8 @@ class Yolov4(object):
                 c_output = DarknetConv2D(1, 1,
                                 activation='sigmoid')(output_tensor)
                 p_output = DarknetConv2D(class_num, 1,
-                                # activation='sigmoid')(output_tensor)
-                                activation='softmax')(output_tensor)
+                                activation='sigmoid')(output_tensor)
+                                # activation='softmax')(output_tensor)
                 output_list += [xy_output,
                                 wh_output,
                                 c_output,
@@ -2584,7 +2584,6 @@ def Model_Yolov4(train_img, train_label, val_img, val_label, class_namesm, ancho
                                     )
     return yolo
 ############# Build Model Yolov4 #############
-
 
 def cal_iou_v2(xywh_true, xywh_pred):
     """Calculate IOU of two tensors.
@@ -3081,7 +3080,7 @@ async def load_Yolov4():
 
 async def load_CNN():
     model_cnn=CNN_Model()
-    model_cnn.load_weights("./Weights/cnn_epochs_6.h5")
+    model_cnn.load_weights("./Weights/cnn_resnetrs420_epochs_7.h5")
     return model_cnn
 
 
@@ -3119,14 +3118,75 @@ async def run_Yolov4():
         load_Yolov4()
     )
     return yolo
+
+##################################   Yolov8     ###########################
+from dataset.build import build_transform
+
+from utils.misc import load_weight
+from utils.box_ops import rescale_bboxes
+
+from models.detectors import build_model
+from config import build_dataset_config, build_trans_config, build_model_config
+
+class Args():
+    def __init__(self):
+        self.img_size = 640
+        self.mosaic = None
+        self.mixup = None
+        self.mode = 'image'
+        self.cuda = False
+        self.show = False
+        self.gif = False
+        # Model setting
+        self.model = 'yolov8_n'
+        self.num_classes = 1
+        self.weight = './Weights/yolov8_n_last_mosaic_epoch.pth'
+        self.conf_thresh = 0.35
+        self.nms_thresh = 0.5
+        self.topk = 100
+        self.deploy = False
+        self.fuse_conv_bn = False
+        self.no_multi_labels = False
+        self.nms_class_agnostic = False
+        # Data Setting
+        self.dataset = 'plate_number'
+async def load_Yolov8():
+    args = Args()
+    if args.cuda:
+        print('use cuda')
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    # config
+    model_cfg = build_model_config(args)
+    trans_cfg = build_trans_config(model_cfg['trans_type'])
+    data_cfg  = build_dataset_config(args)
+
+    ## Data info
+    num_classes = data_cfg['num_classes']
+    class_names = data_cfg['class_names']
+    class_indexs = data_cfg['class_indexs']
+
+    # build model
+    model = build_model(args, model_cfg, device, num_classes, False)
+
+    model = load_weight(model, args.weight, args.fuse_conv_bn)
+    model.to(device).eval() 
+    
+    return model
+
+##################################   Yolov8     ###########################
+
 async def load_all_model():
-    yolov2, yolov3, yolov4, cnn = await asyncio.gather(
+    yolov2, yolov3, yolov4, yolov8, cnn = await asyncio.gather(
         load_Yolov2(),
         load_Yolov3(),
         load_Yolov4(),
+        load_Yolov8(),
         load_CNN()
     )
-    return yolov2, yolov3, yolov4, cnn
+    return yolov2, yolov3, yolov4, yolov8, cnn
 async def load_custom_model():
     yolov3, yolov4, cnn = await asyncio.gather(
         load_Yolov3(),
@@ -3136,11 +3196,13 @@ async def load_custom_model():
     return yolov3, yolov4, cnn
 
 
+
 if 'cnn' not in st.session_state:
-    yolov2, yolov3, yolov4, cnn = asyncio.run(load_all_model())
+    yolov2, yolov3, yolov4, yolov8, cnn = asyncio.run(load_all_model())
     st.session_state['yolov2'] = yolov2
     st.session_state['yolov3'] = yolov3
     st.session_state['yolov4'] = yolov4
+    st.session_state['yolov8'] = yolov8
     st.session_state['cnn'] = cnn
 # if 'cnn' not in st.session_state:
 #     yolov3, yolov4, cnn = asyncio.run(load_custom_model())
@@ -3171,6 +3233,10 @@ show_pages(
         # The pages appear in the order you pass them
         Page("V4/full_demo.py", "Full Demo With YoloV4", "📖"),
         Page("V4/detail_demo.py", "Detail Demo", "📖"),
+        Section(name="Yolo V8", icon="👀"),
+        # The pages appear in the order you pass them
+        Page("V8/full_demo.py", "Full Demo With YoloV8", "📖"),
+        # Page("V4/detail_demo.py", "Detail Demo", "📖"),
     ]
 )
 add_page_title()

@@ -453,7 +453,6 @@ def Rerun(final_image, cnn, threshold = 170):
         normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
         resized_finalimage = cv2.resize(normalized_image, (75, 100))
-        st.image(resized_finalimage, caption='...', use_column_width=True)
 
         resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
         predicts = cnn.predict(resized_finalimage)
@@ -789,7 +788,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                 normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
                 resized_finalimage = cv2.resize(normalized_image, (75, 100))
-                st.image(resized_finalimage, caption='...', use_column_width=True)
 
                 resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
                 predicts = cnn.predict(resized_finalimage)
@@ -948,7 +946,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                 normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
                 resized_finalimage = cv2.resize(normalized_image, (75, 100))
-                st.image(resized_finalimage, caption='...', use_column_width=True)
 
                 resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
 
@@ -969,7 +966,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
             elif len(result_string) > 0 and len(result_string) < 9:
                 try:
                     img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 150)
-                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                     if len(result_string) >=0 and len(result_string) < 9:
                         img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
                         if len(result_string) >=0 and len(result_string) < 9:
@@ -1038,7 +1034,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
             else:
                 try:
                     img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 150)
-                    st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                     if len(result_string) >=0 and len(result_string) < 9:
                         img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
                         if len(result_string) >=0 and len(result_string) < 9:
@@ -1047,11 +1042,9 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                 s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
                                 st.markdown(s, unsafe_allow_html=True) 
                             else:
-                                st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                                 s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                                 st.markdown(s, unsafe_allow_html=True) 
                         else:
-                            st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                             s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                             st.markdown(s, unsafe_allow_html=True) 
 
@@ -1063,7 +1056,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                                     st.markdown(s, unsafe_allow_html=True)
                                     break
                     else:
-                        st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                         s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
@@ -1080,7 +1072,6 @@ def DisplayDemo(yolo, cnn, uploaded_files, version = 2):
                         s = f"<p style='font-size:40px;'>Không thể nhận diện tất cả chữ số</p>"
                         st.markdown(s, unsafe_allow_html=True) 
                     else:
-                        st.image(img_binary_lp, caption='Image Binary', use_column_width=True)
                         s = f"<p style='font-size:40px;'>🥳 {result_string[:2]}-{result_string[2:4]} {result_string[4:7]}.{result_string[7:]}</p>"
                         st.markdown(s, unsafe_allow_html=True) 
 
