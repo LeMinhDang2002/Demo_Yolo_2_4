@@ -7,6 +7,15 @@ import imutils
 import pandas as pd
 import torch
 from st_pages import add_page_title, hide_pages
+# load transform
+from dataset.build import build_transform
+
+from utils.misc import load_weight
+from utils.box_ops import rescale_bboxes
+from utils.vis_tools import visualize
+
+from models.detectors import build_model
+from config import build_model_config, build_trans_config, build_dataset_config
 add_page_title()
 
 class_names = ['motobike']
@@ -648,6 +657,511 @@ def Rerun(final_image, cnn, threshold = 170):
 
     return img_binary_lp, result_string
 
+class Args():
+    def __init__(self):
+        self.img_size = 640
+        self.mosaic = None
+        self.mixup = None
+        self.mode = 'image'
+        self.cuda = False
+        self.show = False
+        self.gif = False
+        # Model setting
+        self.model = 'yolov8_n'
+        self.num_classes = 1
+        self.weight = './Weights/yolov8_n_last_mosaic_epoch.pth'
+        self.conf_thresh = 0.35
+        self.nms_thresh = 0.5
+        self.topk = 100
+        self.deploy = False
+        self.fuse_conv_bn = False
+        self.no_multi_labels = False
+        self.nms_class_agnostic = False
+        # Data Setting
+        self.dataset = 'plate_number'
+def RunDemoV8(yolo, cnn, image):
+    args = Args()
+    if args.cuda:
+        print('use cuda')
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    # config
+    model_cfg = build_model_config(args)
+    trans_cfg = build_trans_config(model_cfg['trans_type'])
+    data_cfg  = build_dataset_config(args)
+
+    ## Data info
+    num_classes = data_cfg['num_classes']
+    class_names = data_cfg['class_names']
+    class_indexs = data_cfg['class_indexs']
+    val_transform, trans_cfg = build_transform(args, trans_cfg, model_cfg['max_stride'], is_train=False)
+
+    img, img_draw, cropped_image = None, None, None
+    image_real = image.copy()
+
+    orig_h, orig_w, _ = image_real.shape
+    img_transform, _, ratio = val_transform(image_real)
+    img_transform = img_transform.unsqueeze(0).to(device)
+
+    # inference
+    outputs = yolo(img_transform)
+    scores = outputs['scores']
+    labels = outputs['labels']
+    bboxes = outputs['bboxes']
+
+    index = np.argmax(scores)
+
+    bboxes = rescale_bboxes(bboxes, [orig_w, orig_h], ratio)
+    x = int((int(bboxes[index][0]) + int(bboxes[index][2]))/2)
+    y = int((int(bboxes[index][1]) + int(bboxes[index][3]))/2) 
+    w = int(bboxes[index][2] - bboxes[index][0]) * 1.2
+    h = int(bboxes[index][3] - bboxes[index][1]) * 1.1
+
+    xywhcc = []
+    xywhcc.append(int((int(bboxes[0][0]) + int(bboxes[0][2]))/2))
+    xywhcc.append(int((int(bboxes[0][1]) + int(bboxes[0][3]))/2))
+    xywhcc.append(int(bboxes[0][2] - bboxes[0][0]))
+    xywhcc.append(int(bboxes[0][3] - bboxes[0][1]))
+    xywhcc.append(scores[0])
+    xywhcc.append(labels[0])
+
+    # x_min = int(bboxes[0][0])
+    # y_min = int(bboxes[0][1])
+    # x_max = int(bboxes[0][2])
+    # y_max = int(bboxes[0][3])
+    x_min, y_min = int(x - w / 2), int(y - h / 2)
+    x_max, y_max = int(x + w / 2), int(y + h / 2)
+
+    img_draw = Image.fromarray(image)
+    draw = ImageDraw.Draw(img_draw)
+
+    draw.rectangle([x_min, y_min, x_max, y_max], outline='red')
+
+    cropped_image = image[y_min:y_max, x_min:x_max]
+    cropped_image = cv2.resize(cropped_image, (115, 100), interpolation = cv2.INTER_AREA)
+
+    restore_img = func_GFPGAN(input_img=cropped_image, upscale=6)
+
+    image_copy = restore_img.copy()
+    
+    # Convert image to grayscale
+    gray = cv2.cvtColor(restore_img,cv2.COLOR_BGR2GRAY)
+    # Use canny edge detection
+    edges = cv2.Canny(gray,100,200,apertureSize=3)
+    lines = cv2.HoughLinesP(
+                edges, # Input edge image
+                1, # Distance resolution in pixels
+                # np.pi/180, # Angle resolution in radians
+                np.pi/120, # Angle resolution in radians
+                threshold=120, # Min number of votes for valid line
+                minLineLength=250, # Min allowed length of line
+                maxLineGap= 200 # Max allowed gap between line for joining them
+                )
+
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        angle_rad = np.arctan2(y2 - y1, x2 - x1)
+        angle_deg_check = np.degrees(angle_rad)
+        # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        if y2 >= 0 and y2 < int(restore_img.shape[0]/2) and y1 >= 0 and y1 < int(restore_img.shape[0]/2) and np.abs(angle_deg_check) < 45:
+            # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            angle_rad = np.arctan2(y2 - y1, x2 - x1)
+            angle_deg = np.degrees(angle_rad)
+        if y2 > int(restore_img.shape[0]/2) and y2 < int(restore_img.shape[0]) and y1 >  int(restore_img.shape[0]/2) and y1 < int(restore_img.shape[0]) and np.abs(angle_deg_check) < 45:
+            # cv2.line(restore_img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            angle_rad = np.arctan2(y2 - y1, x2 - x1)
+            angle_deg = np.degrees(angle_rad)
+
+    rotated_image = imutils.rotate(image_copy, angle_deg)
+
+    gray = cv2.cvtColor(rotated_image,cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray,50,200,apertureSize=3)
+    lines = cv2.HoughLinesP(
+                        edges, # Input edge image
+                        1, # Distance resolution in pixels
+                        # np.pi/180, # Angle resolution in radians
+                        np.pi/120, # Angle resolution in radians
+                        # threshold=100, # Min number of votes for valid line
+                        threshold=100, # Min number of votes for valid line
+                        minLineLength=200, # Min allowed length of line
+                        maxLineGap= 300 # Max allowed gap between line for joining them
+                        )
+    distance_top = 600
+    distance_bottom = 600
+    y_min, y_max = 0, rotated_image.shape[0]
+    deg = 0
+    # height_tmp = int(image.shape[1])
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        angle_rad = np.arctan2(y2 - y1, x2 - x1)
+        angle_deg = np.degrees(angle_rad)
+        if y2 < int(rotated_image.shape[0]/2) and y1 < int(rotated_image.shape[0]/2) and are_lines_parallel(angle_deg, threshold=3) and y_min < y2:
+            # cv2.line(rotated_image, (x1, y1), (x2, y2), (255, 255, 0), 2)
+            y_min = y2
+        if y2 > int(rotated_image.shape[0]/2) and y1 > int(rotated_image.shape[0]/2) and are_lines_parallel(angle_deg, threshold=4) and y_max > y2 and y2 > rotated_image.shape[0]/2 + 50:
+            # cv2.line(rotated_image, (x1, y1), (x2, y2), (255, 255, 0), 2)
+            y_max = y2
+
+        angle_rad = np.arctan2(y2 - y1, x2 - x1)
+        angle_deg = np.degrees(angle_rad)
+        if are_lines_perpendicular(angle_deg) and x1 > 10 and x2>10 and x1 < rotated_image.shape[1] - 10 and x2 < rotated_image.shape[1] - 10:
+            # cv2.line(rotated_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            distance_bottom = 0
+            distance_top = 0
+            deg = 0
+        elif are_lines_perpendicular(angle_deg, threshold=2) == False and np.abs(angle_deg) > 45 and np.abs(angle_deg) > deg:
+            # np.tan(np.deg2rad(np.abs(np.abs(angle_deg) - 90)))
+            if x1 <= x2 and y1 > y2 and x1 > 10 and x2>10 and x1 < rotated_image.shape[1] - 10 and x2 < rotated_image.shape[1] - 10:
+                tmp = int(np.tan(np.deg2rad(np.abs(np.abs(angle_deg) - 90))) * np.abs(y1 - y2)) 
+                if tmp <= distance_top :
+                    distance_top = tmp
+                    deg = np.abs(angle_deg)
+            elif x1 <= x2 and y1 < y2 and x1 > 10 and x2>10 and x1 < rotated_image.shape[1] - 10 and x2 < rotated_image.shape[1] - 10:
+                tmp = int(np.tan(np.deg2rad(np.abs(np.abs(angle_deg) - 90))) * np.abs(y1 - y2)) 
+                if tmp <= distance_bottom:
+                    distance_bottom = tmp
+                    deg = np.abs(angle_deg)
+
+    if(distance_top != 600):
+        crop_image = rotated_image[np.abs(y_min - 20):y_max + 15, :]
+        src = crop_image.copy()
+        srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
+        dstTri = np.array( [[-distance_top, 0], [src.shape[1], 0 ], [0 , src.shape[0]]] ).astype(np.float32)
+        warp_mat = cv2.getAffineTransform(srcTri, dstTri)
+        warp_dst = cv2.warpAffine(src, warp_mat, (src.shape[1], src.shape[0]))
+
+    if(distance_bottom != 600):
+        crop_image = rotated_image[np.abs(y_min - 20):y_max + 15, :]
+        src = crop_image.copy()
+        srcTri = np.array( [[0, 0], [src.shape[1], 0], [0, src.shape[0]]] ).astype(np.float32)
+        dstTri = np.array( [[0, 0], [src.shape[1], 0 ], [-distance_bottom , src.shape[0]]] ).astype(np.float32)
+        warp_mat = cv2.getAffineTransform(srcTri, dstTri)
+        warp_dst = cv2.warpAffine(src, warp_mat, (src.shape[1], src.shape[0]))
+
+
+    if (distance_top == 600 and distance_bottom == 600):
+        gray = cv2.cvtColor(rotated_image,cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray,50,200,apertureSize=3)
+        lines = cv2.HoughLinesP(
+                            edges, # Input edge image
+                            1, # Distance resolution in pixels
+                            # np.pi/180, # Angle resolution in radians
+                            np.pi/120, # Angle resolution in radians
+                            # threshold=100, # Min number of votes for valid line
+                            threshold=120, # Min number of votes for valid line
+                            minLineLength=250, # Min allowed length of line
+                            maxLineGap= 300 # Max allowed gap between line for joining them
+                            )
+        distance_top = 0
+        distance_bottom = 0
+        x_min, y_min, x_max, y_max = 0, 0, 0,0
+        deg = 0
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            angle_rad = np.arctan2(y2 - y1, x2 - x1)
+            if are_lines_parallel(angle_deg) and y1 < int(rotated_image.shape[0]/2):
+                # cv2.line(rotated_image, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                y_min = y1
+            if are_lines_parallel(angle_deg) and y1 > int(rotated_image.shape[0]/2):
+                # cv2.line(rotated_image, (x1, y1), (x2, y2), (0, 255, 255), 2)
+                y_max = y1
+            if are_lines_perpendicular(angle_deg) and x1 < int(rotated_image.shape[1]/2):
+                # cv2.line(rotated_image, (x1, y1), (x2, y2), (0, 255, 125), 2)
+                x_min = x1
+            if are_lines_perpendicular(angle_deg) and x1 > int(rotated_image.shape[1]/2):
+                # cv2.line(rotated_image, (x1, y1), (x2, y2), (125, 255, 0), 2)
+                x_max = x1
+        final_image = rotated_image[y_min:y_max, x_min:x_max]
+
+
+        img_gray_lp = cv2.cvtColor(final_image, cv2.COLOR_BGR2GRAY)
+
+        LP_WIDTH = final_image.shape[1]
+        LP_HEIGHT = final_image.shape[0]
+        dimensions = [LP_WIDTH/14,
+                            LP_WIDTH/4,
+                            LP_HEIGHT/3,
+                            LP_HEIGHT/2]
+
+        # img_gray_lp = cv2.cvtColor(rotated_image, cv2.COLOR_BGR2GRAY)
+        st.image(img_gray_lp, caption='Gray Image.', use_column_width=True)
+        # _, img_binary_lp = cv2.threshold(img_gray_lp, 2, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        _, img_binary_lp = cv2.threshold(img_gray_lp, 170, 255, cv2.THRESH_BINARY)
+
+        cntrs, _ = cv2.findContours(img_binary_lp.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #Approx dimensions of the contours
+        lower_width = dimensions[0]
+        upper_width = dimensions[1]
+        lower_height = dimensions[2]
+        upper_height = dimensions[3]
+
+        #Check largest 15 contours for license plate character respectively
+        cntrs = sorted(cntrs, key=cv2.contourArea, reverse=True)[:15]
+
+        character = []
+        x_cntr_list_1 = []
+        x_cntr_list_2 = []
+        target_contours = []
+        img_res_1 = []
+        img_res_2 = []
+
+        rotate_locations = []
+
+        for cntr in cntrs :
+            #detecting contour in binary image and returns the coordinates of rectangle enclosing it
+            intX, intY, intWidth, intHeight = cv2.boundingRect(cntr)
+            intX-=5
+            intY-=5
+            intWidth = int(intWidth*1.2)
+            intHeight = int(intHeight*1.1)
+            
+            #checking the dimensions of the contour to filter out the characters by contour's size
+            if intWidth > lower_width and intWidth < upper_width and intHeight > lower_height and intHeight < upper_height and intY < LP_HEIGHT/3 :
+                x_cntr_list_1.append(intX) 
+                char_copy = np.zeros((44,24))
+                #extracting each character using the enclosing rectangle's coordinates.
+                char = final_image[intY:intY+intHeight, intX:intX+intWidth]
+                char = cv2.resize(char, (75, 100))
+                img_res_1.append(char) # List that stores the character's binary image (unsorted)
+
+        for cntr in cntrs :
+            #detecting contour in binary image and returns the coordinates of rectangle enclosing it
+            intX, intY, intWidth, intHeight = cv2.boundingRect(cntr)
+            intX-=5
+            intY-=5
+            intWidth = int(intWidth*1.2)
+            intHeight = int(intHeight*1.1)
+            if intWidth > lower_width and intWidth < upper_width and intHeight > lower_height and intHeight < upper_height and intY > LP_HEIGHT/3 :
+                # print(intX, intY, intWidth, intHeight)
+                rotate_locations.append([intX, intY])
+                x_cntr_list_2.append(intX) 
+                char_copy = np.zeros((44,24))
+                #extracting each character using the enclosing rectangle's coordinates.
+                char = final_image[intY:intY+intHeight, intX:intX+intWidth]
+                char = cv2.resize(char, (75, 100))
+                img_res_2.append(char) # List that stores the character's binary image (unsorted)
+    
+        #arbitrary function that stores sorted list of character indeces
+        indices = sorted(range(len(x_cntr_list_1)), key=lambda k: x_cntr_list_1[k])
+        img_res_copy = []
+        for idx in indices:
+            img_res_copy.append(img_res_1[idx])# stores character images according to their index
+        img_res_1 = np.array(img_res_copy)
+
+        #arbitrary function that stores sorted list of character indeces
+        indices = sorted(range(len(x_cntr_list_2)), key=lambda k: x_cntr_list_2[k])
+        img_res_copy = []
+        for idx in indices:
+            img_res_copy.append(img_res_2[idx])# stores character images according to their index
+        img_res_2 = np.array(img_res_copy)
+
+        if(len(img_res_1) != 0 and len(img_res_2) != 0):
+            img_res = np.concatenate((img_res_1, img_res_2), axis=0)
+        elif (len(img_res_1) != 0 and len(img_res_2) == 0):
+            img_res = img_res_1
+        elif (len(img_res_1) == 0 and len(img_res_2) != 0):
+            img_res = img_res_2
+        for i in range(len(img_res)):
+
+            # Chuyển đổi độ sâu của hình ảnh sang định dạng 8-bit unsigned integer
+            normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+            resized_finalimage = cv2.resize(normalized_image, (75, 100))
+
+            resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
+            predicts = cnn.predict(resized_finalimage)
+            predicted_class = np.argmax(predicts, axis=1)
+
+            if (predicted_class[0]) >= 10:
+                character.append(chr((predicted_class[0] - 10) + ord('A')))
+            else:
+                character.append(predicted_class[0])
+
+        char_array = [str(item) for item in character]
+        result_string = ''.join(char_array[:])
+    else:
+        gray = cv2.cvtColor(warp_dst,cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray,50,200,apertureSize=3)
+        lines = cv2.HoughLinesP(
+                    edges, # Input edge image
+                    1, # Distance resolution in pixels
+                    # np.pi/180, # Angle resolution in radians
+                    np.pi/120, # Angle resolution in radians
+                    # threshold=100, # Min number of votes for valid line
+                    threshold=100, # Min number of votes for valid line
+                    minLineLength=100, # Min allowed length of line
+                    maxLineGap= 200 # Max allowed gap between line for joining them
+                    )
+        x_min, y_min, x_max, y_max = 0,0,warp_dst.shape[1],warp_dst.shape[0]
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            angle_rad = np.arctan2(y2 - y1, x2 - x1)
+            angle_deg = np.degrees(angle_rad)
+            if are_lines_perpendicular(angle_deg, threshold=4) and x1 < int(warp_dst.shape[1]/2) and x1 > 20 and x2 > 20:
+                # cv2.line(warp_dst, (x1, y1), (x2, y2), (0, 255, 125), 2)
+                if x_min != 0 and x1 < x_min:
+                    x_min = x1
+                elif x_min == 0:
+                    x_min = x1
+            if are_lines_perpendicular(angle_deg, threshold=4) and x1 > int(warp_dst.shape[1]/2) and x1 < warp_dst.shape[1]-20 and x2 < warp_dst.shape[1]-20:
+                # cv2.line(warp_dst, (x1, y1), (x2, y2), (125, 255, 0), 2)
+                if x_max != warp_dst.shape[1] and x1 > x_max:
+                    x_max = x1
+                elif x_max == warp_dst.shape[1]:
+                    x_max = x1
+        final_image = warp_dst[:, x_min:x_max]
+
+
+        img_gray_lp = cv2.cvtColor(final_image, cv2.COLOR_BGR2GRAY)
+
+        LP_WIDTH = final_image.shape[1]
+        LP_HEIGHT = final_image.shape[0]
+
+        #estimations of character contours sizes of cropped license plates
+        dimensions = [LP_WIDTH/14,
+                            LP_WIDTH/4,
+                            LP_HEIGHT/3,
+                            LP_HEIGHT/2]
+
+        _, img_binary_lp = cv2.threshold(img_gray_lp, 170, 255, cv2.THRESH_BINARY)
+        # _, img_binary_lp = cv2.threshold(img_gray_lp, 150, 255, cv2.THRESH_BINARY)
+
+        cntrs, _ = cv2.findContours(img_binary_lp.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #Approx dimensions of the contours
+        lower_width = dimensions[0]
+        upper_width = dimensions[1]
+        lower_height = dimensions[2]
+        upper_height = dimensions[3]
+
+        #Check largest 15 contours for license plate character respectively
+        cntrs = sorted(cntrs, key=cv2.contourArea, reverse=True)[:15]
+
+
+        character = []
+        x_cntr_list_1 = []
+        x_cntr_list_2 = []
+        target_contours = []
+        img_res_1 = []
+        img_res_2 = []
+
+        rotate_locations = []
+
+        for cntr in cntrs :
+            #detecting contour in binary image and returns the coordinates of rectangle enclosing it
+            intX, intY, intWidth, intHeight = cv2.boundingRect(cntr)
+            intX-=5
+            intY-=5
+            intWidth = int(intWidth*1.2)
+            intHeight = int(intHeight*1.1)
+            
+            #checking the dimensions of the contour to filter out the characters by contour's size
+            if intWidth > lower_width and intWidth < upper_width and intHeight > lower_height and intHeight < upper_height and intY < LP_HEIGHT/3  and intX > 0 and intY > 0:
+                x_cntr_list_1.append(intX) 
+                char_copy = np.zeros((44,24))
+                #extracting each character using the enclosing rectangle's coordinates.
+                char = final_image[intY:intY+intHeight, intX:intX+intWidth]
+                char = cv2.resize(char, (75, 100))
+                cv2.rectangle(img_binary_lp, (intX,intY), (intWidth+intX, intY+intHeight), (50,21,200), 1)
+                img_res_1.append(char) # List that stores the character's binary image (unsorted)
+
+        for cntr in cntrs :
+            #detecting contour in binary image and returns the coordinates of rectangle enclosing it
+            intX, intY, intWidth, intHeight = cv2.boundingRect(cntr)
+            intX-=5
+            intY-=5
+            intWidth = int(intWidth*1.2)
+            intHeight = int(intHeight*1.1)
+            if intWidth > lower_width and intWidth < upper_width and intHeight > lower_height and intHeight < upper_height and intY > LP_HEIGHT/3 and intX>0 and intY > 0:
+                # print(intX, intY, intWidth, intHeight)
+                rotate_locations.append([intX, intY])
+                x_cntr_list_2.append(intX) 
+                char_copy = np.zeros((44,24))
+                #extracting each character using the enclosing rectangle's coordinates.
+                char = final_image[intY:intY+intHeight, intX:intX+intWidth]
+                char = cv2.resize(char, (75, 100))
+                cv2.rectangle(img_binary_lp, (intX,intY), (intWidth+intX, intY+intHeight), (50,21,200), 1)
+                img_res_2.append(char) # List that stores the character's binary image (unsorted)
+    
+        #arbitrary function that stores sorted list of character indeces
+        indices = sorted(range(len(x_cntr_list_1)), key=lambda k: x_cntr_list_1[k])
+        # indices = sorted(range(len(x_cntr_list)), key=lambda k: (y_cntr_list[k], x_cntr_list[k]))
+        img_res_copy = []
+        for idx in indices:
+            img_res_copy.append(img_res_1[idx])# stores character images according to their index
+        img_res_1 = np.array(img_res_copy)
+
+        #arbitrary function that stores sorted list of character indeces
+        indices = sorted(range(len(x_cntr_list_2)), key=lambda k: x_cntr_list_2[k])
+        # indices = sorted(range(len(x_cntr_list)), key=lambda k: (y_cntr_list[k], x_cntr_list[k]))
+        img_res_copy = []
+        for idx in indices:
+            img_res_copy.append(img_res_2[idx])# stores character images according to their index
+        img_res_2 = np.array(img_res_copy)
+
+        if(len(img_res_1) != 0 and len(img_res_2) != 0):
+            img_res = np.concatenate((img_res_1, img_res_2), axis=0)
+        elif (len(img_res_1) != 0 and len(img_res_2) == 0):
+            img_res = img_res_1
+        elif (len(img_res_1) == 0 and len(img_res_2) != 0):
+            img_res = img_res_2
+        for i in range(len(img_res)):
+
+            # Chuyển đổi độ sâu của hình ảnh sang định dạng 8-bit unsigned integer
+            normalized_image = cv2.normalize(img_res[i], None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+            resized_finalimage = cv2.resize(normalized_image, (75, 100))
+
+            resized_finalimage = np.expand_dims(resized_finalimage, axis=0)
+            predicts = cnn.predict(resized_finalimage)
+            predicted_class = np.argmax(predicts, axis=1)
+            print(predicted_class[0])
+
+            if (predicted_class[0]) >= 10:
+                character.append(chr((predicted_class[0] - 10) + ord('A')))
+            else:
+                character.append(predicted_class[0])
+
+        char_array = [str(item) for item in character]
+        result_string = ''.join(char_array[:])
+
+        if len(result_string) == 0:
+            s = f"<p style='font-size:100px; text-align: center'>🥺</p>"
+            st.markdown(s, unsafe_allow_html=True) 
+        elif len(result_string) > 0 and len(result_string) < 9:
+            try:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
+                if len(result_string) >=0 and len(result_string) < 9:
+                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+                    if len(result_string) >=0 and len(result_string) < 9:
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
+                    else:
+                        pass
+                else:
+                    pass
+            except:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+
+        elif len(result_string) == 9:
+            pass
+        else:
+            try:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
+                if len(result_string) >=0 and len(result_string) < 9:
+                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+                    if len(result_string) >=0 and len(result_string) < 9:
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
+                    else:
+                        pass
+                else:
+                    pass
+            except:
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
+
+    return result_string, xywhcc
+
+
 def RunDemo(yolo, cnn, image, version = 2):
     img, img_draw, cropped_image = None, None, None
     image_real = image.copy()
@@ -1094,36 +1608,83 @@ def RunDemo(yolo, cnn, image, version = 2):
             st.markdown(s, unsafe_allow_html=True) 
         elif len(result_string) > 0 and len(result_string) < 9:
             try:
-                img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 150)
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
                 if len(result_string) >=0 and len(result_string) < 9:
-                    img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
+                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
                     if len(result_string) >=0 and len(result_string) < 9:
-                        img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 130)
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
                     else:
                         pass
                 else:
                     pass
             except:
-                img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
 
         elif len(result_string) == 9:
             pass
         else:
             try:
-                img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 150)
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 150)
                 if len(result_string) >=0 and len(result_string) < 9:
-                    img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
+                    img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
                     if len(result_string) >=0 and len(result_string) < 9:
-                        img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 130)
+                        img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 130)
                     else:
                         pass
                 else:
                     pass
             except:
-                img_binary_lp, result_string = Rerun(cropped_image, cnn, threshold = 190)
+                img_binary_lp, result_string = Rerun(final_image, cnn, threshold = 190)
 
     return result_string, xywhcc
 
+def RunPredictionV8(yolo, img):
+    args = Args()
+    if args.cuda:
+        print('use cuda')
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    # config
+    model_cfg = build_model_config(args)
+    trans_cfg = build_trans_config(model_cfg['trans_type'])
+    data_cfg  = build_dataset_config(args)
+
+    ## Data info
+    num_classes = data_cfg['num_classes']
+    class_names = data_cfg['class_names']
+    class_indexs = data_cfg['class_indexs']
+    val_transform, trans_cfg = build_transform(args, trans_cfg, model_cfg['max_stride'], is_train=False)
+
+    image_real = img.copy()
+    
+    orig_h, orig_w, _ = image_real.shape
+    img_transform, _, ratio = val_transform(image_real)
+    img_transform = img_transform.unsqueeze(0).to(device)
+
+    # inference
+    outputs = yolo(img_transform)
+    scores = outputs['scores']
+    labels = outputs['labels']
+    bboxes = outputs['bboxes']
+    index = np.argmax(scores)
+
+    bboxes = rescale_bboxes(bboxes, [orig_w, orig_h], ratio)
+    x = int((int(bboxes[index][0]) + int(bboxes[index][2]))/2)
+    y = int((int(bboxes[index][1]) + int(bboxes[index][3]))/2) 
+    w = int(bboxes[index][2] - bboxes[index][0])
+    h = int(bboxes[index][3] - bboxes[index][1])
+
+    xywhcc = []
+    xywhcc.append(x)
+    xywhcc.append(y)
+    xywhcc.append(w)
+    xywhcc.append(h)
+    xywhcc.append(scores[0])
+    xywhcc.append(labels[0])
+
+    return xywhcc
 def RunPrediction(yolo, image, version = 2):
     img, img_draw, cropped_image = None, None, None
     image_real = image.copy()
@@ -1165,7 +1726,7 @@ with st.form("select_anchors"):
     path_test = st.text_input('Nhập đường dẫn tới thư mục chứa dữ liệu test', placeholder="Path....")
 
     # st.markdown(styled_s + style, unsafe_allow_html=True)
-    select_model = st.selectbox("Chọn mô hình", ("Yolov2", "Yolov3", "Yolov4"))
+    select_model = st.selectbox("Chọn mô hình", ("Yolov2", "Yolov3", "Yolov4", "Yolov8"))
     start = st.form_submit_button('Bắt đầu')
 
 if start:
@@ -1407,6 +1968,7 @@ if start:
                             score_giou += giou(xywh_true, xywh_pred)
                             score_diou += diou(xywh_true, xywh_pred)
                         if name == item and plate_number == plate:
+                            print(name)
                             count+=1
             except: 
                 pass
@@ -1486,6 +2048,112 @@ if start:
         hours = int(interval // 3600)
         minutes = int((interval % 3600) // 60)
         seconds = int(interval % 60)
+
+    if(select_model == 'Yolov8'):
+        contents = [file for file in os.listdir(path_test) if file.endswith(".jpg")]
+        start_time = time.time()
+        for item in contents:
+            file_name = path_test + "\\" + item
+            image = cv2.imread(file_name)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            try:
+                plate_number, xywhcc = RunDemoV8(st.session_state.yolov8, st.session_state.cnn, image)
+                conf += float(xywhcc[4])
+                p = int(xywhcc[5])
+                if p == 0:
+                    count_p += 1
+                with open(path_test + '\\label.txt', 'r') as file:
+                    for line in file:
+                        data = line.strip().split()
+                        name, plate = data[0], data[1]
+                        if name == item:
+                            xywh_true = [int((int(data[4]) + int(data[2]))/2), int((int(data[5]) + int(data[3]))/2), int(int(data[4]) - int(data[2])), int(int(data[5]) - int(data[3]))]
+                            xywh_pred = [int(xywhcc[0]), int(xywhcc[1]), int(xywhcc[2]), int(xywhcc[3])]
+                            score_iou += iou(xywh_true, xywh_pred)
+                            score_giou += giou(xywh_true, xywh_pred)
+                            score_diou += diou(xywh_true, xywh_pred)
+                        if name == item and plate_number == plate:
+                            print(name)
+                            count+=1
+            except: 
+                pass
+
+        list_recall = []
+        list_precision = []
+        list_iou = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+        for i in range(len(list_iou)):
+            TP, FP, FN = 0,0,0
+            for item in contents:
+                file_name = path_test + "\\" + item
+                image = cv2.imread(file_name)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                try:
+                    xywhcc = RunPredictionV8(st.session_state.yolov8, image)
+                    with open(path_test + '\\label.txt', 'r') as file:
+                        for line in file:
+                            data = line.strip().split()
+                            name, plate = data[0], data[1]
+                            if name == item:
+                                xywh_true = [int((int(data[4]) + int(data[2]))/2), int((int(data[5]) + int(data[3]))/2), int(int(data[4]) - int(data[2])), int(int(data[5]) - int(data[3]))]
+                                xywh_pred = [int(xywhcc[0]), int(xywhcc[1]), int(xywhcc[2]), int(xywhcc[3])]
+                                _iou = iou(xywh_true, xywh_pred)
+                                if _iou >= list_iou[i]:
+                                    TP += 1
+                                # elif _iou < list_iou[i] and _iou >= list_iou[i] - 0.5:
+                                elif _iou < list_iou[i] and _iou > 0:
+                                    FP += 1
+                                else:
+                                    FN += 1
+                except: 
+                    FN += 1
+            try:
+                if (TP + FN) == 0:
+                    recall = 0.0
+                else:
+                    recall = float(((TP)/(TP + FN)))
+                if(TP + FP) == 0:
+                    precision = 0.0
+                else:
+                    precision = float(((TP)/(TP + FP)))
+                list_recall.append(recall)
+                list_precision.append(precision)
+            except:
+                pass
+
+        AP = 0.0
+        list_recall = sorted(list_recall)
+        np_list_precision = np.array(list_precision)
+        np_list_recall = np.array(list_recall)
+
+        print(list_recall)
+        print(list_precision)
+        is_all_ones = np.all(np_list_recall == 1.0)
+        is_all_zero = np.all(np_list_recall == 0.0)
+        all_zero_or_one = np.all((np_list_recall == 0.0) | (np_list_recall == 1.0))
+        if all_zero_or_one:
+            AP = np.sum(np_list_precision)
+            AP = round(AP / len(list_recall), 2)  
+        else:
+            if is_all_ones:
+                AP = np.sum(np_list_precision)
+            elif is_all_zero:
+                AP = 0.0
+            else:
+                for i in range(1, len(list_recall)):
+                    AP += (np.abs(np_list_recall[i] - np_list_recall[i - 1]))*np_list_precision[i]
+            try:
+                if is_all_ones or is_all_zero:
+                    AP = round(AP / len(list_recall), 2)    
+                else:
+                    AP = round(AP, 2)
+            except:
+                pass
+        end_time = time.time()
+        interval = end_time - start_time
+        hours = int(interval // 3600)
+        minutes = int((interval % 3600) // 60)
+        seconds = int(interval % 60)
+
     result = round(count/total, 2)*100
     result_p = round(count_p/total, 2)*100
     miou = round(score_iou / total, 2)
