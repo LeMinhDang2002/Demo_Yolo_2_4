@@ -1,4 +1,6 @@
-GFPGAN
+GFPGAN/gfpgan/weights/detection_Resnet50_Final.pth
+GFPGAN/gfpgan/weights/GFPGANv1.3.pth
+GFPGAN/gfpgan/weights/parsing_parsenet.pth
 Image
 Test.txt
 test.ipynb
